@@ -152,7 +152,7 @@ async function loadRemote() {
   if (!configured()) return null;
   try {
     const r = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
-      headers: { "X-Master-Key": JSONBIN_API_KEY }
+      headers: { "X-Access-Key": JSONBIN_API_KEY }
     });
     const j = await r.json();
     return j.record || null;
@@ -163,7 +163,7 @@ async function saveRemote(data) {
   if (!configured()) return;
   await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_API_KEY },
+    headers: { "Content-Type": "application/json", "X-Access-Key": JSONBIN_API_KEY },
     body: JSON.stringify(data)
   });
 }
@@ -212,7 +212,7 @@ function SetupScreen({ onReady }) {
     setLoading(true);
     try {
       const r = await fetch(`https://api.jsonbin.io/v3/b/${binId.trim()}/latest`, {
-        headers: { "X-Master-Key": apiKey.trim() }
+        headers: { "X-Access-Key": apiKey.trim() }
       });
       if (!r.ok) { setError("Could not connect — check your API key and Bin ID."); setLoading(false); return; }
       // Store in sessionStorage for this session
@@ -234,7 +234,7 @@ function SetupScreen({ onReady }) {
     const bi = configured() ? JSONBIN_BIN_ID  : sessionStorage.getItem("hh_binid");
 
     try {
-      const r = await fetch(`https://api.jsonbin.io/v3/b/${bi}/latest`, { headers: { "X-Master-Key": ak } });
+      const r = await fetch(`https://api.jsonbin.io/v3/b/${bi}/latest`, { headers: { "X-Access-Key": ak } });
       if (!r.ok) { setError(`Could not connect (${r.status}) — check your API key and Bin ID.`); setLoading(false); return; }
       const j = await r.json();
       const data = j.record || { raters: [] };
@@ -251,7 +251,7 @@ function SetupScreen({ onReady }) {
           const salt = generateSalt();
           const hash = await hashPassword(trimmedPass, salt);
           const newData = { ...data, raters: raters.map(r => r.id === existing.id ? { ...r, passwordHash: hash, salt } : r) };
-          const pr = await fetch(`https://api.jsonbin.io/v3/b/${bi}`, { method: "PUT", headers: { "Content-Type": "application/json", "X-Master-Key": ak }, body: JSON.stringify(newData) });
+          const pr = await fetch(`https://api.jsonbin.io/v3/b/${bi}`, { method: "PUT", headers: { "Content-Type": "application/json", "X-Access-Key": ak }, body: JSON.stringify(newData) });
           if (!pr.ok) { setError(`Save failed (${pr.status}) — check your API key and Bin ID.`); setLoading(false); return; }
           onReady({ id: existing.id, name: existing.name, apiKey: ak, binId: bi, initialData: newData });
         }
@@ -260,7 +260,7 @@ function SetupScreen({ onReady }) {
         const hash = await hashPassword(trimmedPass, salt);
         const id = `rater-${Date.now()}`;
         const newData = { ...data, raters: [...raters, { id, name: trimmedName, passwordHash: hash, salt, ratings: {}, notes: {} }] };
-        const pr = await fetch(`https://api.jsonbin.io/v3/b/${bi}`, { method: "PUT", headers: { "Content-Type": "application/json", "X-Master-Key": ak }, body: JSON.stringify(newData) });
+        const pr = await fetch(`https://api.jsonbin.io/v3/b/${bi}`, { method: "PUT", headers: { "Content-Type": "application/json", "X-Access-Key": ak }, body: JSON.stringify(newData) });
         if (!pr.ok) { setError(`Save failed (${pr.status}) — check your API key and Bin ID.`); setLoading(false); return; }
         onReady({ id, name: trimmedName, apiKey: ak, binId: bi, initialData: newData });
       }
@@ -381,7 +381,7 @@ function App() {
     if (!session) return;
     const poll = async () => {
       try {
-        const r = await fetch(`https://api.jsonbin.io/v3/b/${session.binId}/latest`, { headers: { "X-Master-Key": session.apiKey } });
+        const r = await fetch(`https://api.jsonbin.io/v3/b/${session.binId}/latest`, { headers: { "X-Access-Key": session.apiKey } });
         if (!r.ok) { setSyncError(true); return; }
         const j = await r.json();
         if (j.record) {
@@ -405,7 +405,7 @@ function App() {
     try {
       const r = await fetch(`https://api.jsonbin.io/v3/b/${session.binId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json", "X-Master-Key": session.apiKey },
+        headers: { "Content-Type": "application/json", "X-Access-Key": session.apiKey },
         body: JSON.stringify(newData)
       });
       if (!r.ok) { setSyncError(true); setSaving(false); return; }
