@@ -9,14 +9,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #0a0a0a; color: #e8d9b0; }
+  body { background: #0a0a0a; color: #e8e8e8; font-size: 16px; }
   input, textarea, button { font-family: inherit; }
-  input::placeholder, textarea::placeholder { color: #3a3a3a; }
+  input::placeholder, textarea::placeholder { color: #555; }
   textarea { outline: none; }
   input:focus { outline: none; }
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: #111; }
-  ::-webkit-scrollbar-thumb { background: #2a2a2a; }
+  ::-webkit-scrollbar-thumb { background: #333; }
 
   /* Setup screen */
   .setup-screen {
@@ -29,17 +29,17 @@
   }
   .setup-box {
     width: 100%;
-    max-width: 380px;
-    background: #111;
-    border: 1px solid #222;
-    border-radius: 3px;
+    max-width: 400px;
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 4px;
     padding: 28px 24px;
     margin-top: 24px;
   }
   .setup-label {
     font-family: 'Courier New', monospace;
-    font-size: 9px;
-    color: #555;
+    font-size: 11px;
+    color: #aaa;
     letter-spacing: 2px;
     text-transform: uppercase;
     margin-bottom: 6px;
@@ -47,49 +47,49 @@
   .setup-input {
     width: 100%;
     background: #0a0a0a;
-    border: 1px solid #2a2a2a;
+    border: 1px solid #333;
     border-radius: 2px;
-    color: #e8d9b0;
+    color: #e8e8e8;
     font-family: 'Courier New', monospace;
-    font-size: 12px;
+    font-size: 14px;
     padding: 10px 12px;
     margin-bottom: 14px;
     transition: border-color 0.15s;
   }
-  .setup-input:focus { border-color: #c8a84b; }
+  .setup-input:focus { border-color: #EF7D00; }
   .setup-input.error { border-color: #c0392b; }
   .btn-primary {
     width: 100%;
     padding: 13px 0;
-    background: #c8a84b;
+    background: #EF7D00;
     border: none;
     border-radius: 2px;
     color: #0a0a0a;
     font-family: 'Courier New', monospace;
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 3px;
     text-transform: uppercase;
     cursor: pointer;
     font-weight: 700;
     transition: opacity 0.15s;
   }
-  .btn-primary:disabled { background: #222; color: #444; cursor: default; }
+  .btn-primary:disabled { background: #222; color: #555; cursor: default; }
   .btn-primary:not(:disabled):hover { opacity: 0.85; }
   .error-msg {
     font-family: 'Courier New', monospace;
-    font-size: 9px;
-    color: #c0392b;
+    font-size: 11px;
+    color: #e05252;
     margin-bottom: 10px;
     margin-top: -8px;
   }
   .info-msg {
     font-family: 'Courier New', monospace;
-    font-size: 9px;
-    color: #555;
+    font-size: 11px;
+    color: #999;
     line-height: 1.8;
     margin-bottom: 14px;
   }
-  .info-msg a { color: #c8a84b; }
+  .info-msg a { color: #EF7D00; }
 </style>
 </head>
 <body>
@@ -134,7 +134,7 @@ const CRITERIA = [
 ];
 
 const SCORE_COLORS  = ["#c0392b","#e67e22","#f1c40f","#2ecc71","#27ae60"];
-const RATER_COLORS  = ["#c8a84b","#7eb8d4","#d47eb8","#7ed4a0","#d4977e","#a07ed4"];
+const RATER_COLORS  = ["#EF7D00","#7eb8d4","#d47eb8","#7ed4a0","#d4977e","#a07ed4"];
 
 function raterColor(idx) { return RATER_COLORS[idx % RATER_COLORS.length]; }
 
@@ -183,13 +183,13 @@ async function hashPassword(password, salt) {
 function Header() {
   return (
     <div style={{ textAlign: "center", marginBottom: 0 }}>
-      <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: "#555", letterSpacing: 3, textTransform: "uppercase", marginBottom: 10 }}>
+      <div style={{ fontFamily: "'Courier New', monospace", fontSize: 11, color: "#999", letterSpacing: 3, textTransform: "uppercase", marginBottom: 10 }}>
         242 Nassau St · Princeton, NJ · Est. 1974
       </div>
-      <div style={{ fontFamily: "Georgia, serif", fontSize: 32, fontWeight: 700, color: "#c8a84b", letterSpacing: 4, textTransform: "uppercase", marginBottom: 4 }}>
+      <div style={{ fontFamily: "Georgia, serif", fontSize: 36, fontWeight: 700, color: "#EF7D00", letterSpacing: 4, textTransform: "uppercase", marginBottom: 6 }}>
         Hoagie Haven
       </div>
-      <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, color: "#666", letterSpacing: 2, textTransform: "uppercase" }}>
+      <div style={{ fontFamily: "'Courier New', monospace", fontSize: 12, color: "#aaa", letterSpacing: 2, textTransform: "uppercase" }}>
         Specialty Ranking Rubric
       </div>
     </div>
@@ -274,12 +274,12 @@ function SetupScreen({ onReady }) {
 
       {step === "apikey" && (
         <div className="setup-box">
-          <div style={{ fontFamily: "Georgia, serif", fontSize: 13, color: "#c8a84b", marginBottom: 14, letterSpacing: 1 }}>Connect a sync backend</div>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: 15, color: "#EF7D00", marginBottom: 14, letterSpacing: 1 }}>Connect a sync backend</div>
           <p className="info-msg">
             This app syncs ratings in real time via <a href="https://jsonbin.io" target="_blank">JSONBin.io</a> (free).
             <br/>1. Sign up at jsonbin.io
             <br/>2. Create an Access Key (API Keys tab)
-            <br/>3. Create a New Bin with content <code style={{color:"#c8a84b"}}>&#123;&#125;</code>
+            <br/>3. Create a New Bin with content <code style={{color:"#EF7D00"}}>&#123;&#125;</code>
             <br/>4. Paste your API key and Bin ID below
           </p>
           <div className="setup-label">JSONBin API Key</div>
@@ -290,7 +290,7 @@ function SetupScreen({ onReady }) {
           <button className="btn-primary" onClick={handleConfigSave} disabled={loading || !apiKey.trim() || !binId.trim()}>
             {loading ? "Connecting…" : "Connect →"}
           </button>
-          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: "#333", marginTop: 10, lineHeight: 1.7 }}>
+          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, color: "#555", marginTop: 10, lineHeight: 1.7 }}>
             Everyone uses the same Bin ID. Share it with your group once.
           </div>
         </div>
@@ -320,35 +320,35 @@ function SandwichCard({ sandwich, ratings, onRate, notes, onNote }) {
   const complete = filled === CRITERIA.length;
 
   return (
-    <div style={{ background: "#161616", border: `1px solid ${complete ? "#c8a84b55" : "#222"}`, borderRadius: 2, marginBottom: 8, overflow: "hidden", transition: "border-color 0.3s" }}>
-      <button onClick={() => setOpen(!open)} style={{ width: "100%", padding: "13px 16px", background: "none", border: "none", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+    <div style={{ background: "#161616", border: `1px solid ${complete ? "#EF7D0066" : "#2a2a2a"}`, borderRadius: 3, marginBottom: 8, overflow: "hidden", transition: "border-color 0.3s" }}>
+      <button onClick={() => setOpen(!open)} style={{ width: "100%", padding: "14px 16px", background: "none", border: "none", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
         <div style={{ textAlign: "left", flex: 1 }}>
-          <div style={{ fontFamily: "Georgia, serif", fontSize: 14, fontWeight: 700, color: complete ? "#e8d9b0" : "#aaa", letterSpacing: 1, textTransform: "uppercase" }}>{sandwich.name}</div>
-          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: "#444", marginTop: 3 }}>{sandwich.desc}</div>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: 16, fontWeight: 700, color: complete ? "#f0f0f0" : "#ccc", letterSpacing: 1, textTransform: "uppercase" }}>{sandwich.name}</div>
+          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 11, color: "#888", marginTop: 4 }}>{sandwich.desc}</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
           {complete
-            ? <div style={{ fontFamily: "'Courier New', monospace", fontSize: 18, fontWeight: 700, color: "#c8a84b" }}>{score.toFixed(1)}</div>
-            : filled > 0 && <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, color: "#555" }}>{filled}/{CRITERIA.length}</div>
+            ? <div style={{ fontFamily: "'Courier New', monospace", fontSize: 20, fontWeight: 700, color: "#EF7D00" }}>{score.toFixed(1)}</div>
+            : filled > 0 && <div style={{ fontFamily: "'Courier New', monospace", fontSize: 11, color: "#888" }}>{filled}/{CRITERIA.length}</div>
           }
-          <div style={{ color: "#444", fontSize: 12, transform: open ? "rotate(180deg)" : "none", transition: "0.2s" }}>▼</div>
+          <div style={{ color: "#777", fontSize: 12, transform: open ? "rotate(180deg)" : "none", transition: "0.2s" }}>▼</div>
         </div>
       </button>
 
       {open && (
-        <div style={{ padding: "0 16px 16px", borderTop: "1px solid #1e1e1e" }}>
+        <div style={{ padding: "0 16px 16px", borderTop: "1px solid #222" }}>
           {CRITERIA.map(c => (
             <div key={c.id} style={{ marginTop: 14 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                <span style={{ fontFamily: "Georgia, serif", fontSize: 11, color: "#c8a84b", letterSpacing: 1, textTransform: "uppercase" }}>{c.icon} {c.label}</span>
-                <span style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: "#333" }}>×{c.weight}%</span>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                <span style={{ fontFamily: "Georgia, serif", fontSize: 13, color: "#EF7D00", letterSpacing: 1, textTransform: "uppercase" }}>{c.icon} {c.label}</span>
+                <span style={{ fontFamily: "'Courier New', monospace", fontSize: 11, color: "#777" }}>×{c.weight}%</span>
               </div>
-              <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: "#3a3a3a", marginBottom: 6 }}>{c.description}</div>
-              <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+              <div style={{ fontFamily: "'Courier New', monospace", fontSize: 11, color: "#888", marginBottom: 8 }}>{c.description}</div>
+              <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                 {[1,2,3,4,5].map(n => {
                   const active = ratings && ratings[c.id] === n;
                   return (
-                    <button key={n} onClick={() => onRate(c.id, n)} style={{ padding: "4px 8px", border: `1px solid ${active ? SCORE_COLORS[n-1] : "#252525"}`, background: active ? SCORE_COLORS[n-1]+"22" : "transparent", color: active ? SCORE_COLORS[n-1] : "#3a3a3a", cursor: "pointer", borderRadius: 2, fontFamily: "'Courier New', monospace", fontSize: 9, transition: "all 0.1s" }}>
+                    <button key={n} onClick={() => onRate(c.id, n)} style={{ padding: "6px 10px", border: `1px solid ${active ? SCORE_COLORS[n-1] : "#333"}`, background: active ? SCORE_COLORS[n-1]+"22" : "transparent", color: active ? SCORE_COLORS[n-1] : "#999", cursor: "pointer", borderRadius: 2, fontFamily: "'Courier New', monospace", fontSize: 11, transition: "all 0.1s" }}>
                       {n} — {c.scale[n-1]}
                     </button>
                   );
@@ -357,9 +357,9 @@ function SandwichCard({ sandwich, ratings, onRate, notes, onNote }) {
             </div>
           ))}
           <div style={{ marginTop: 14 }}>
-            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: "#333", marginBottom: 5, textTransform: "uppercase", letterSpacing: 1 }}>Field Notes</div>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 11, color: "#777", marginBottom: 6, textTransform: "uppercase", letterSpacing: 1 }}>Field Notes</div>
             <textarea value={notes || ""} onChange={e => onNote(e.target.value)} placeholder="Context, sauce decisions, how it held up…"
-              style={{ width: "100%", minHeight: 48, background: "#0e0e0e", border: "1px solid #1e1e1e", borderRadius: 2, color: "#666", fontFamily: "'Courier New', monospace", fontSize: 10, padding: 8, resize: "vertical" }} />
+              style={{ width: "100%", minHeight: 52, background: "#0e0e0e", border: "1px solid #222", borderRadius: 2, color: "#ccc", fontFamily: "'Courier New', monospace", fontSize: 12, padding: 8, resize: "vertical" }} />
           </div>
         </div>
       )}
@@ -449,32 +449,32 @@ function App() {
   return (
     <div style={{ minHeight: "100vh", background: "#0a0a0a", paddingBottom: 60 }}>
       {/* Top bar */}
-      <div style={{ borderBottom: "1px solid #1a1a1a", padding: "16px 18px 0" }}>
+      <div style={{ borderBottom: "1px solid #222", padding: "16px 18px 0" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
           <div>
-            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: "#3a3a3a", letterSpacing: 3, textTransform: "uppercase", marginBottom: 3 }}>242 Nassau St · Princeton, NJ</div>
-            <div style={{ fontFamily: "Georgia, serif", fontSize: 20, fontWeight: 700, color: "#c8a84b", letterSpacing: 2, textTransform: "uppercase" }}>Hoagie Haven</div>
-            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: "#555", letterSpacing: 2, textTransform: "uppercase" }}>Specialty Ranking Rubric</div>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 11, color: "#888", letterSpacing: 2, textTransform: "uppercase", marginBottom: 3 }}>242 Nassau St · Princeton, NJ</div>
+            <div style={{ fontFamily: "Georgia, serif", fontSize: 22, fontWeight: 700, color: "#EF7D00", letterSpacing: 2, textTransform: "uppercase" }}>Hoagie Haven</div>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 11, color: "#aaa", letterSpacing: 2, textTransform: "uppercase" }}>Specialty Ranking Rubric</div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5 }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
             <div style={{ display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "flex-end" }}>
               {raters.map((r, idx) => (
-                <div key={r.id} style={{ padding: "3px 8px", border: `1px solid ${raterColor(idx)}${r.id === session.id ? "cc" : "33"}`, background: r.id === session.id ? raterColor(idx)+"18" : "transparent", color: r.id === session.id ? raterColor(idx) : "#3a3a3a", fontFamily: "'Courier New', monospace", fontSize: 8, borderRadius: 2, letterSpacing: 1 }}>
+                <div key={r.id} style={{ padding: "4px 9px", border: `1px solid ${raterColor(idx)}${r.id === session.id ? "cc" : "44"}`, background: r.id === session.id ? raterColor(idx)+"20" : "transparent", color: r.id === session.id ? raterColor(idx) : "#777", fontFamily: "'Courier New', monospace", fontSize: 11, borderRadius: 2, letterSpacing: 1 }}>
                   {r.name}
                 </div>
               ))}
             </div>
-            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: syncError ? "#c0392b" : saving ? "#555" : lastSaved ? "#2a2a2a" : "#1a1a1a" }}>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, color: syncError ? "#e05252" : saving ? "#888" : lastSaved ? "#555" : "#333" }}>
               {syncError ? "sync error" : saving ? "saving…" : lastSaved ? "synced ✓" : ""}
             </div>
           </div>
         </div>
-        <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: raterColor(myIdx), letterSpacing: 1, marginBottom: 10 }}>
+        <div style={{ fontFamily: "'Courier New', monospace", fontSize: 12, color: raterColor(myIdx), letterSpacing: 1, marginBottom: 10 }}>
           ▶ Rating as: {session.name}
         </div>
         <div style={{ display: "flex" }}>
           {["rate","rank"].map(v => (
-            <button key={v} onClick={() => setView(v)} style={{ padding: "9px 16px 7px", border: "none", background: "none", cursor: "pointer", fontFamily: "'Courier New', monospace", fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: view===v ? "#c8a84b" : "#444", borderBottom: view===v ? "2px solid #c8a84b" : "2px solid transparent", transition: "all 0.15s" }}>
+            <button key={v} onClick={() => setView(v)} style={{ padding: "9px 18px 8px", border: "none", background: "none", cursor: "pointer", fontFamily: "'Courier New', monospace", fontSize: 12, letterSpacing: 2, textTransform: "uppercase", color: view===v ? "#EF7D00" : "#888", borderBottom: view===v ? "2px solid #EF7D00" : "2px solid transparent", transition: "all 0.15s" }}>
               {v==="rate" ? `Rate (${session.name})` : `Leaderboard${ranked.length > 0 ? ` (${ranked.length})` : ""}`}
             </button>
           ))}
@@ -484,7 +484,7 @@ function App() {
       <div style={{ padding: "16px 18px 0" }}>
         {view === "rate" && (
           <>
-            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: "#3a3a3a", marginBottom: 14, lineHeight: 1.8 }}>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 11, color: "#888", marginBottom: 14, lineHeight: 1.8 }}>
               Rating as <span style={{ color: raterColor(myIdx) }}>{session.name}</span> — tap a sandwich to rate across 6 weighted criteria. Scores out of 100.
             </div>
             {SPECIALTIES.map(s => (
@@ -497,39 +497,39 @@ function App() {
 
         {view === "rank" && (
           ranked.length === 0
-            ? <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, color: "#444", marginTop: 40, textAlign: "center", lineHeight: 2 }}>No sandwiches fully rated yet.<br/>Head to Rate to get started.</div>
+            ? <div style={{ fontFamily: "'Courier New', monospace", fontSize: 13, color: "#888", marginTop: 40, textAlign: "center", lineHeight: 2 }}>No sandwiches fully rated yet.<br/>Head to Rate to get started.</div>
             : <>
-                <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: "#3a3a3a", marginBottom: 16, lineHeight: 1.8 }}>
+                <div style={{ fontFamily: "'Courier New', monospace", fontSize: 11, color: "#888", marginBottom: 16, lineHeight: 1.8 }}>
                   Averaged across {raters.length} rater{raters.length!==1?"s":""}: {raters.map((r,i)=><span key={r.id} style={{color:raterColor(i)}}>{r.name}{i<raters.length-1?", ":""}</span>)}
                 </div>
                 {ranked.map((s,i) => {
                   const medal = ["🥇","🥈","🥉"][i] || `#${i+1}`;
                   const rs = raters.map((r,ri)=>({name:r.name,color:raterColor(ri),score:calcScore((r.ratings||{})[s.id]||{})})).filter(x=>x.score!==null);
                   return (
-                    <div key={s.id} style={{ marginBottom: 10, padding: "12px 14px", background: i===0?"#16120a":"#111", border: `1px solid ${i===0?"#c8a84b44":"#1a1a1a"}`, borderRadius: 2 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ fontSize: 16 }}>{medal}</span>
+                    <div key={s.id} style={{ marginBottom: 10, padding: "14px 16px", background: i===0?"#160e00":"#111", border: `1px solid ${i===0?"#EF7D0044":"#222"}`, borderRadius: 3 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <span style={{ fontSize: 18 }}>{medal}</span>
                           <div>
-                            <div style={{ fontFamily: "Georgia, serif", fontWeight: 700, fontSize: 13, color: "#e8d9b0", letterSpacing: 1, textTransform: "uppercase" }}>{s.name}</div>
-                            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: "#3a3a3a", marginTop: 2 }}>{s.raterCount} of {raters.length} rated</div>
+                            <div style={{ fontFamily: "Georgia, serif", fontWeight: 700, fontSize: 15, color: "#f0f0f0", letterSpacing: 1, textTransform: "uppercase" }}>{s.name}</div>
+                            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, color: "#888", marginTop: 3 }}>{s.raterCount} of {raters.length} rated</div>
                           </div>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 20, fontWeight: 700, color: "#c8a84b" }}>{s.avg.toFixed(1)}</div>
-                          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: "#444" }}>avg</div>
+                          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 22, fontWeight: 700, color: "#EF7D00" }}>{s.avg.toFixed(1)}</div>
+                          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, color: "#888" }}>avg</div>
                         </div>
                       </div>
-                      <div style={{ height: 2, background: "#1a1a1a", borderRadius: 2, overflow: "hidden", marginBottom: 8 }}>
-                        <div style={{ height: "100%", width: `${s.avg}%`, background: i===0?"linear-gradient(90deg,#c8a84b,#f0d060)":"#2a2a2a", borderRadius: 2, transition: "width 0.5s ease" }} />
+                      <div style={{ height: 2, background: "#222", borderRadius: 2, overflow: "hidden", marginBottom: 10 }}>
+                        <div style={{ height: "100%", width: `${s.avg}%`, background: i===0?"linear-gradient(90deg,#EF7D00,#FF9A30)":"#333", borderRadius: 2, transition: "width 0.5s ease" }} />
                       </div>
                       {rs.length > 1 && (
-                        <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
-                          {rs.map(x=><div key={x.name} style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: x.color, border: `1px solid ${x.color}33`, padding: "2px 7px", borderRadius: 2 }}>{x.name}: {x.score.toFixed(1)}</div>)}
+                        <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 6 }}>
+                          {rs.map(x=><div key={x.name} style={{ fontFamily: "'Courier New', monospace", fontSize: 11, color: x.color, border: `1px solid ${x.color}44`, padding: "3px 8px", borderRadius: 2 }}>{x.name}: {x.score.toFixed(1)}</div>)}
                         </div>
                       )}
                       {raters.map((r,ri) => (r.notes||{})[s.id]
-                        ? <div key={r.id} style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: "#3a3a3a", marginTop: 4 }}><span style={{color:raterColor(ri)}}>{r.name}:</span> "{r.notes[s.id]}"</div>
+                        ? <div key={r.id} style={{ fontFamily: "'Courier New', monospace", fontSize: 11, color: "#aaa", marginTop: 5 }}><span style={{color:raterColor(ri)}}>{r.name}:</span> "{r.notes[s.id]}"</div>
                         : null)}
                     </div>
                   );
