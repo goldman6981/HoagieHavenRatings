@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hoagie Haven — Specialty Ranking Rubric</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0a; color: #e8d9b0; }
+  input, textarea, button { font-family: inherit; }
+  input::placeholder, textarea::placeholder { color: #3a3a3a; }
+  textarea { outline: none; }
+  input:focus { outline: none; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #111; }
+  ::-webkit-scrollbar-thumb { background: #2a2a2a; }
+
+  /* Setup screen */
+  .setup-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+  }
+  .setup-box {
+    width: 100%;
+    max-width: 380px;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 3px;
+    padding: 28px 24px;
+    margin-top: 24px;
+  }
+  .setup-label {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    color: #555;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .setup-input {
+    width: 100%;
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    border-radius: 2px;
+    color: #e8d9b0;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    transition: border-color 0.15s;
+  }
+  .setup-input:focus { border-color: #c8a84b; }
+  .setup-input.error { border-color: #c0392b; }
+  .btn-primary {
+    width: 100%;
+    padding: 13px 0;
+    background: #c8a84b;
+    border: none;
+    border-radius: 2px;
+    color: #0a0a0a;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-weight: 700;
+    transition: opacity 0.15s;
+  }
+  .btn-primary:disabled { background: #222; color: #444; cursor: default; }
+  .btn-primary:not(:disabled):hover { opacity: 0.85; }
+  .error-msg {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    color: #c0392b;
+    margin-bottom: 10px;
+    margin-top: -8px;
+  }
+  .info-msg {
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 14px;
+  }
+  .info-msg a { color: #c8a84b; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+
+// ─── CONFIG ─────────────────────────────────────────────────────────────────
+// Fill these in after creating a free JSONBin account at https://jsonbin.io
+// 1. Sign up at jsonbin.io
+// 2. Go to API Keys → Create Access Key (copy it here)
+// 3. Click "New Bin", paste {} as content, click Create
+// 4. Copy the Bin ID from the URL and paste it below
+const JSONBIN_API_KEY  = "$2a$10$gx6zGrkfAbhAOyzGyD45BOtZU8YJ3xhK4nSLllUGRuIEetiEX3W6a";   // e.g. "$2a$10$abc..."
+const JSONBIN_BIN_ID   = "6a1f1b92f5f4af5e29ae8a71";    // e.g. "6650abc123..."
+// ────────────────────────────────────────────────────────────────────────────
+
+const SPECIALTIES = [
+  { id: "sanchez",          name: "Sanchez",          desc: "Chicken Cutlet, American Cheese, Mozz Sticks, Fries, Sanchez Sauce" },
+  { id: "phat_lady",        name: "Phat Lady",         desc: "Cheesesteak, Mozz Sticks, Fries, Ketchup, Hot Sauce" },
+  { id: "mac_daddy",        name: "Mac Daddy",         desc: "Bacon Cheeseburger, Mac 'n' Cheese Wedges, Fries, Honey Mustard, Hot Sauce" },
+  { id: "heart_stop",       name: "Heart Stop",        desc: "Cheesesteak, Bacon, Eggs, Ketchup, Hot Sauce" },
+  { id: "wake_up_call",     name: "Wake-Up Call",      desc: "Cheesesteak, Bacon, Eggs, Hash Brown, Pork Roll, Ketchup, Hot Sauce" },
+  { id: "middle_finger",    name: "Middle Finger",     desc: "Grilled Cheese, Chicken Cutlet, Pepperoni, Honey Mustard" },
+  { id: "chicken_pachanga", name: "Chicken Pachanga",  desc: "Grilled Chicken, Chicken Tacos, Bacon, Ranch, Hot Sauce" },
+  { id: "body_bag",         name: "Body Bag",          desc: "Capicola, Ham, Salami, Provolone, Cheesesteak, Hash Browns, Egg, Ketchup, Hot Sauce" },
+  { id: "el_mexicano",      name: "El Mexicano",       desc: "Cheesesteak, Chicken Tacos, Sour Cream, Hot Sauce" },
+  { id: "bloch",            name: "Bloch",             desc: "Chicken Parmigiana, Bacon, Eggs" },
+  { id: "big_cat",          name: "Big Cat",           desc: "Double Bacon Cheeseburger with Double Eggs" },
+  { id: "shrimp_po_boy",    name: "Shrimp Po' Boy",    desc: "Fried Shrimp, Lettuce, Tomato, Tartar Sauce, Hot Sauce" },
+  { id: "phat_veg",         name: "Phat Veg (V)",      desc: "Eggplant Parm, Mozz Sticks, Fries, Sanchez Sauce" },
+];
+
+const CRITERIA = [
+  { id: "flavor",   label: "Flavor Harmony",    weight: 25, icon: "★", description: "Do the ingredients work together? Are the sauces balanced?",          scale: ["Clashing",    "Some discord",   "Decent",       "Well balanced",  "Harmonious"]     },
+  { id: "moisture", label: "Moisture Balance",  weight: 20, icon: "◈", description: "Not too dry, not soggy. The bread should hold up but not disintegrate.", scale: ["Way off",      "Notably off",    "Acceptable",   "Good balance",   "Perfect"]        },
+  { id: "texture",  label: "Texture Contrast",  weight: 20, icon: "◇", description: "Crunch vs. soft elements. Do fried add-ons stay crispy?",              scale: ["One-note",     "Limited",        "Some variation","Good contrast",  "Exceptional"]    },
+  { id: "bread",    label: "Bread Quality",     weight: 15, icon: "▱", description: "Fresh? Crisp crust, soft interior? Structural integrity under load?",   scale: ["Stale/soggy",  "Subpar",         "Fine",         "Fresh & sturdy", "Perfect vessel"] },
+  { id: "value",    label: "Gut Satisfaction",  weight: 10, icon: "◉", description: "Pure visceral satisfaction. Did it hit the spot? Crave it again?",     scale: ["Regret",       "Meh",            "Decent",       "Satisfied",      "Transcendent"]   },
+  { id: "concept",  label: "Concept Execution", weight: 10, icon: "◆", description: "Creative and coherent, or a random pile of ingredients?",              scale: ["Incoherent",   "Questionable",   "Makes sense",  "Clever",         "Genius combo"]   },
+];
+
+const SCORE_COLORS  = ["#c0392b","#e67e22","#f1c40f","#2ecc71","#27ae60"];
+const RATER_COLORS  = ["#c8a84b","#7eb8d4","#d47eb8","#7ed4a0","#d4977e","#a07ed4"];
+
+function raterColor(idx) { return RATER_COLORS[idx % RATER_COLORS.length]; }
+
+function calcScore(ratings) {
+  if (!ratings) return null;
+  let total = 0, count = 0;
+  CRITERIA.forEach(c => { if (ratings[c.id]) { total += (ratings[c.id] / 5) * c.weight; count++; } });
+  return count === CRITERIA.length ? total : null;
+}
+
+// ─── JSONBin API ─────────────────────────────────────────────────────────────
+const configured = () => JSONBIN_API_KEY !== "YOUR_API_KEY_HERE" && JSONBIN_BIN_ID !== "YOUR_BIN_ID_HERE";
+
+async function loadRemote() {
+  if (!configured()) return null;
+  try {
+    const r = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+      headers: { "X-Master-Key": JSONBIN_API_KEY }
+    });
+    const j = await r.json();
+    return j.record || null;
+  } catch { return null; }
+}
+
+async function saveRemote(data) {
+  if (!configured()) return;
+  await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_API_KEY },
+    body: JSON.stringify(data)
+  });
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+function Header() {
+  return (
+    <div style={{ textAlign: "center", marginBottom: 0 }}>
+      <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: "#555", letterSpacing: 3, textTransform: "uppercase", marginBottom: 10 }}>
+        242 Nassau St · Princeton, NJ · Est. 1974
+      </div>
+      <div style={{ fontFamily: "Georgia, serif", fontSize: 32, fontWeight: 700, color: "#c8a84b", letterSpacing: 4, textTransform: "uppercase", marginBottom: 4 }}>
+        Hoagie Haven
+      </div>
+      <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, color: "#666", letterSpacing: 2, textTransform: "uppercase" }}>
+        Specialty Ranking Rubric
+      </div>
+    </div>
+  );
+}
+
+function SetupScreen({ onReady }) {
+  const [step, setStep] = useState(configured() ? "name" : "apikey");
+  const [apiKey, setApiKey] = useState("");
+  const [binId, setBinId] = useState("");
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // If already configured in code, skip straight to name
+  const handleConfigSave = async () => {
+    if (!apiKey.trim() || !binId.trim()) { setError("Both fields required."); return; }
+    setLoading(true);
+    try {
+      const r = await fetch(`https://api.jsonbin.io/v3/b/${binId.trim()}/latest`, {
+        headers: { "X-Master-Key": apiKey.trim() }
+      });
+      if (!r.ok) { setError("Could not connect — check your API key and Bin ID."); setLoading(false); return; }
+      // Store in sessionStorage for this session
+      sessionStorage.setItem("hh_apikey", apiKey.trim());
+      sessionStorage.setItem("hh_binid", binId.trim());
+      setStep("name");
+    } catch { setError("Network error — are you online?"); }
+    setLoading(false);
+  };
+
+  const handleJoin = async () => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setLoading(true);
+    setError("");
+
+    const ak = configured() ? JSONBIN_API_KEY : sessionStorage.getItem("hh_apikey");
+    const bi = configured() ? JSONBIN_BIN_ID  : sessionStorage.getItem("hh_binid");
+
+    try {
+      const r = await fetch(`https://api.jsonbin.io/v3/b/${bi}/latest`, { headers: { "X-Master-Key": ak } });
+      const j = await r.json();
+      const data = j.record || { raters: [] };
+      const taken = (data.raters || []).map(r => r.name.toLowerCase());
+      if (taken.includes(trimmed.toLowerCase())) { setError("That name is taken — pick another."); setLoading(false); return; }
+
+      const id = `rater-${Date.now()}`;
+      const newData = { ...data, raters: [...(data.raters || []), { id, name: trimmed, ratings: {}, notes: {} }] };
+      await fetch(`https://api.jsonbin.io/v3/b/${bi}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "X-Master-Key": ak },
+        body: JSON.stringify(newData)
+      });
+      onReady({ id, name: trimmed, apiKey: ak, binId: bi });
+    } catch { setError("Could not connect. Check your connection."); }
+    setLoading(false);
+  };
+
+  return (
+    <div className="setup-screen">
+      <Header />
+
+      {step === "apikey" && (
+        <div className="setup-box">
+          <div style={{ fontFamily: "Georgia, serif", fontSize: 13, color: "#c8a84b", marginBottom: 14, letterSpacing: 1 }}>Connect a sync backend</div>
+          <p className="info-msg">
+            This app syncs ratings in real time via <a href="https://jsonbin.io" target="_blank">JSONBin.io</a> (free).
+            <br/>1. Sign up at jsonbin.io
+            <br/>2. Create an Access Key (API Keys tab)
+            <br/>3. Create a New Bin with content <code style={{color:"#c8a84b"}}>&#123;&#125;</code>
+            <br/>4. Paste your API key and Bin ID below
+          </p>
+          <div className="setup-label">JSONBin API Key</div>
+          <input className={`setup-input${error ? " error" : ""}`} value={apiKey} onChange={e=>{setApiKey(e.target.value);setError("");}} placeholder="$2a$10$..." />
+          <div className="setup-label">Bin ID</div>
+          <input className={`setup-input${error ? " error" : ""}`} value={binId} onChange={e=>{setBinId(e.target.value);setError("");}} placeholder="6650abc123..." onKeyDown={e=>e.key==="Enter"&&handleConfigSave()} />
+          {error && <div className="error-msg">{error}</div>}
+          <button className="btn-primary" onClick={handleConfigSave} disabled={loading || !apiKey.trim() || !binId.trim()}>
+            {loading ? "Connecting…" : "Connect →"}
+          </button>
+          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: "#333", marginTop: 10, lineHeight: 1.7 }}>
+            Everyone uses the same Bin ID. Share it with your group once.
+          </div>
+        </div>
+      )}
+
+      {step === "name" && (
+        <div className="setup-box">
+          <div className="setup-label">Your name</div>
+          <input className={`setup-input${error ? " error" : ""}`} value={name} onChange={e=>{setName(e.target.value);setError("");}} onKeyDown={e=>e.key==="Enter"&&handleJoin()} placeholder="e.g. Mike, Niko, Costa…" autoFocus />
+          {error && <div className="error-msg">{error}</div>}
+          <button className="btn-primary" onClick={handleJoin} disabled={loading || !name.trim()}>
+            {loading ? "Joining…" : "Enter the Haven"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SandwichCard({ sandwich, ratings, onRate, notes, onNote }) {
+  const [open, setOpen] = useState(false);
+  const score = calcScore(ratings);
+  const filled = CRITERIA.filter(c => ratings && ratings[c.id]).length;
+  const complete = filled === CRITERIA.length;
+
+  return (
+    <div style={{ background: "#161616", border: `1px solid ${complete ? "#c8a84b55" : "#222"}`, borderRadius: 2, marginBottom: 8, overflow: "hidden", transition: "border-color 0.3s" }}>
+      <button onClick={() => setOpen(!open)} style={{ width: "100%", padding: "13px 16px", background: "none", border: "none", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+        <div style={{ textAlign: "left", flex: 1 }}>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: 14, fontWeight: 700, color: complete ? "#e8d9b0" : "#aaa", letterSpacing: 1, textTransform: "uppercase" }}>{sandwich.name}</div>
+          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: "#444", marginTop: 3 }}>{sandwich.desc}</div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          {complete
+            ? <div style={{ fontFamily: "'Courier New', monospace", fontSize: 18, fontWeight: 700, color: "#c8a84b" }}>{score.toFixed(1)}</div>
+            : filled > 0 && <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, color: "#555" }}>{filled}/{CRITERIA.length}</div>
+          }
+          <div style={{ color: "#444", fontSize: 12, transform: open ? "rotate(180deg)" : "none", transition: "0.2s" }}>▼</div>
+        </div>
+      </button>
+
+      {open && (
+        <div style={{ padding: "0 16px 16px", borderTop: "1px solid #1e1e1e" }}>
+          {CRITERIA.map(c => (
+            <div key={c.id} style={{ marginTop: 14 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                <span style={{ fontFamily: "Georgia, serif", fontSize: 11, color: "#c8a84b", letterSpacing: 1, textTransform: "uppercase" }}>{c.icon} {c.label}</span>
+                <span style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: "#333" }}>×{c.weight}%</span>
+              </div>
+              <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: "#3a3a3a", marginBottom: 6 }}>{c.description}</div>
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                {[1,2,3,4,5].map(n => {
+                  const active = ratings && ratings[c.id] === n;
+                  return (
+                    <button key={n} onClick={() => onRate(c.id, n)} style={{ padding: "4px 8px", border: `1px solid ${active ? SCORE_COLORS[n-1] : "#252525"}`, background: active ? SCORE_COLORS[n-1]+"22" : "transparent", color: active ? SCORE_COLORS[n-1] : "#3a3a3a", cursor: "pointer", borderRadius: 2, fontFamily: "'Courier New', monospace", fontSize: 9, transition: "all 0.1s" }}>
+                      {n} — {c.scale[n-1]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+          <div style={{ marginTop: 14 }}>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: "#333", marginBottom: 5, textTransform: "uppercase", letterSpacing: 1 }}>Field Notes</div>
+            <textarea value={notes || ""} onChange={e => onNote(e.target.value)} placeholder="Context, sauce decisions, how it held up…"
+              style={{ width: "100%", minHeight: 48, background: "#0e0e0e", border: "1px solid #1e1e1e", borderRadius: 2, color: "#666", fontFamily: "'Courier New', monospace", fontSize: 10, padding: 8, resize: "vertical" }} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function App() {
+  const [session, setSession] = useState(null);   // { id, name, apiKey, binId }
+  const [data, setData] = useState({ raters: [] });
+  const [view, setView] = useState("rate");
+  const [saving, setSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState(null);
+  const [syncError, setSyncError] = useState(false);
+  const saveQueue = useRef(null);
+
+  // Poll remote every 6s when session active
+  useEffect(() => {
+    if (!session) return;
+    const poll = async () => {
+      try {
+        const r = await fetch(`https://api.jsonbin.io/v3/b/${session.binId}/latest`, { headers: { "X-Master-Key": session.apiKey } });
+        const j = await r.json();
+        if (j.record) setData(j.record);
+        setSyncError(false);
+      } catch { setSyncError(true); }
+    };
+    poll();
+    const id = setInterval(poll, 6000);
+    return () => clearInterval(id);
+  }, [session]);
+
+  const persist = useCallback(async (newData) => {
+    if (!session) return;
+    setSaving(true);
+    try {
+      await fetch(`https://api.jsonbin.io/v3/b/${session.binId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "X-Master-Key": session.apiKey },
+        body: JSON.stringify(newData)
+      });
+      setLastSaved(new Date());
+      setSyncError(false);
+    } catch { setSyncError(true); }
+    setSaving(false);
+  }, [session]);
+
+  const updateRater = useCallback(async (updater) => {
+    setData(prev => {
+      const newData = { ...prev, raters: prev.raters.map(r => r.id === session.id ? updater(r) : r) };
+      persist(newData);
+      return newData;
+    });
+  }, [session, persist]);
+
+  const onRate = (sandwichId, criteriaId, value) => {
+    updateRater(r => ({ ...r, ratings: { ...r.ratings, [sandwichId]: { ...(r.ratings[sandwichId]||{}), [criteriaId]: value } } }));
+  };
+  const onNote = (sandwichId, note) => {
+    updateRater(r => ({ ...r, notes: { ...r.notes, [sandwichId]: note } }));
+  };
+
+  if (!session) return <SetupScreen onReady={s => { setSession(s); }} />;
+
+  const { raters } = data;
+  const me = raters.find(r => r.id === session.id) || { ratings: {}, notes: {} };
+  const myIdx = raters.findIndex(r => r.id === session.id);
+
+  const getAvg = (sid) => {
+    const scores = raters.map(r => calcScore((r.ratings||{})[sid]||{})).filter(s => s !== null);
+    return scores.length ? scores.reduce((a,b)=>a+b,0)/scores.length : null;
+  };
+
+  const ranked = SPECIALTIES
+    .map(s => ({ ...s, avg: getAvg(s.id), raterCount: raters.filter(r => calcScore((r.ratings||{})[s.id]||{}) !== null).length }))
+    .filter(s => s.avg !== null)
+    .sort((a,b) => b.avg - a.avg);
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#0a0a0a", paddingBottom: 60 }}>
+      {/* Top bar */}
+      <div style={{ borderBottom: "1px solid #1a1a1a", padding: "16px 18px 0" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+          <div>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: "#3a3a3a", letterSpacing: 3, textTransform: "uppercase", marginBottom: 3 }}>242 Nassau St · Princeton, NJ</div>
+            <div style={{ fontFamily: "Georgia, serif", fontSize: 20, fontWeight: 700, color: "#c8a84b", letterSpacing: 2, textTransform: "uppercase" }}>Hoagie Haven</div>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: "#555", letterSpacing: 2, textTransform: "uppercase" }}>Specialty Ranking Rubric</div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5 }}>
+            <div style={{ display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "flex-end" }}>
+              {raters.map((r, idx) => (
+                <div key={r.id} style={{ padding: "3px 8px", border: `1px solid ${raterColor(idx)}${r.id === session.id ? "cc" : "33"}`, background: r.id === session.id ? raterColor(idx)+"18" : "transparent", color: r.id === session.id ? raterColor(idx) : "#3a3a3a", fontFamily: "'Courier New', monospace", fontSize: 8, borderRadius: 2, letterSpacing: 1 }}>
+                  {r.name}
+                </div>
+              ))}
+            </div>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: syncError ? "#c0392b" : saving ? "#555" : lastSaved ? "#2a2a2a" : "#1a1a1a" }}>
+              {syncError ? "sync error" : saving ? "saving…" : lastSaved ? "synced ✓" : ""}
+            </div>
+          </div>
+        </div>
+        <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: raterColor(myIdx), letterSpacing: 1, marginBottom: 10 }}>
+          ▶ Rating as: {session.name}
+        </div>
+        <div style={{ display: "flex" }}>
+          {["rate","rank"].map(v => (
+            <button key={v} onClick={() => setView(v)} style={{ padding: "9px 16px 7px", border: "none", background: "none", cursor: "pointer", fontFamily: "'Courier New', monospace", fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: view===v ? "#c8a84b" : "#444", borderBottom: view===v ? "2px solid #c8a84b" : "2px solid transparent", transition: "all 0.15s" }}>
+              {v==="rate" ? `Rate (${session.name})` : `Leaderboard${ranked.length > 0 ? ` (${ranked.length})` : ""}`}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ padding: "16px 18px 0" }}>
+        {view === "rate" && (
+          <>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: "#3a3a3a", marginBottom: 14, lineHeight: 1.8 }}>
+              Rating as <span style={{ color: raterColor(myIdx) }}>{session.name}</span> — tap a sandwich to rate across 6 weighted criteria. Scores out of 100.
+            </div>
+            {SPECIALTIES.map(s => (
+              <SandwichCard key={s.id} sandwich={s}
+                ratings={(me.ratings||{})[s.id]||{}} onRate={(cid,val) => onRate(s.id,cid,val)}
+                notes={(me.notes||{})[s.id]||""} onNote={note => onNote(s.id,note)} />
+            ))}
+          </>
+        )}
+
+        {view === "rank" && (
+          ranked.length === 0
+            ? <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, color: "#444", marginTop: 40, textAlign: "center", lineHeight: 2 }}>No sandwiches fully rated yet.<br/>Head to Rate to get started.</div>
+            : <>
+                <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: "#3a3a3a", marginBottom: 16, lineHeight: 1.8 }}>
+                  Averaged across {raters.length} rater{raters.length!==1?"s":""}: {raters.map((r,i)=><span key={r.id} style={{color:raterColor(i)}}>{r.name}{i<raters.length-1?", ":""}</span>)}
+                </div>
+                {ranked.map((s,i) => {
+                  const medal = ["🥇","🥈","🥉"][i] || `#${i+1}`;
+                  const rs = raters.map((r,ri)=>({name:r.name,color:raterColor(ri),score:calcScore((r.ratings||{})[s.id]||{})})).filter(x=>x.score!==null);
+                  return (
+                    <div key={s.id} style={{ marginBottom: 10, padding: "12px 14px", background: i===0?"#16120a":"#111", border: `1px solid ${i===0?"#c8a84b44":"#1a1a1a"}`, borderRadius: 2 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span style={{ fontSize: 16 }}>{medal}</span>
+                          <div>
+                            <div style={{ fontFamily: "Georgia, serif", fontWeight: 700, fontSize: 13, color: "#e8d9b0", letterSpacing: 1, textTransform: "uppercase" }}>{s.name}</div>
+                            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: "#3a3a3a", marginTop: 2 }}>{s.raterCount} of {raters.length} rated</div>
+                          </div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 20, fontWeight: 700, color: "#c8a84b" }}>{s.avg.toFixed(1)}</div>
+                          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: "#444" }}>avg</div>
+                        </div>
+                      </div>
+                      <div style={{ height: 2, background: "#1a1a1a", borderRadius: 2, overflow: "hidden", marginBottom: 8 }}>
+                        <div style={{ height: "100%", width: `${s.avg}%`, background: i===0?"linear-gradient(90deg,#c8a84b,#f0d060)":"#2a2a2a", borderRadius: 2, transition: "width 0.5s ease" }} />
+                      </div>
+                      {rs.length > 1 && (
+                        <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                          {rs.map(x=><div key={x.name} style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: x.color, border: `1px solid ${x.color}33`, padding: "2px 7px", borderRadius: 2 }}>{x.name}: {x.score.toFixed(1)}</div>)}
+                        </div>
+                      )}
+                      {raters.map((r,ri) => (r.notes||{})[s.id]
+                        ? <div key={r.id} style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: "#3a3a3a", marginTop: 4 }}><span style={{color:raterColor(ri)}}>{r.name}:</span> "{r.notes[s.id]}"</div>
+                        : null)}
+                    </div>
+                  );
+                })}
+              </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
