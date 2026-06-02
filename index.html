@@ -103,7 +103,7 @@ const { useState, useEffect, useCallback, useRef } = React;
 // 2. Go to API Keys → Create Access Key (copy it here)
 // 3. Click "New Bin", paste {} as content, click Create
 // 4. Copy the Bin ID from the URL and paste it below
-const JSONBIN_API_KEY  = "$2a$10$gx6zGrkfAbhAOyzGyD45BOtZU8YJ3xhK4nSLllUGRuIEetiEX3W6a";   // e.g. "$2a$10$abc..."
+const JSONBIN_API_KEY  = "$2a$10$ie6qGP.UEjZOoJ/MHy834u8ME6oRzQXx0NPB8MHde6bQyo4oxBZkK";   // e.g. "$2a$10$abc..."
 const JSONBIN_BIN_ID   = "6a1f1b92f5f4af5e29ae8a71";    // e.g. "6650abc123..."
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -168,6 +168,17 @@ async function saveRemote(data) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
+function generateSalt() {
+  return Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function hashPassword(password, salt) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt: enc.encode(salt), iterations: 100000, hash: "SHA-256" }, key, 256);
+  return Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
 function Header() {
   return (
     <div style={{ textAlign: "center", marginBottom: 0 }}>
@@ -189,8 +200,10 @@ function SetupScreen({ onReady }) {
   const [apiKey, setApiKey] = useState("");
   const [binId, setBinId] = useState("");
   const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const passwordRef = useRef(null);
 
   // If already configured in code, skip straight to name
   const handleConfigSave = async () => {
@@ -210,8 +223,9 @@ function SetupScreen({ onReady }) {
   };
 
   const handleJoin = async () => {
-    const trimmed = name.trim();
-    if (!trimmed) return;
+    const trimmedName = name.trim();
+    const trimmedPass = password.trim();
+    if (!trimmedName || !trimmedPass) return;
     setLoading(true);
     setError("");
 
@@ -222,17 +236,30 @@ function SetupScreen({ onReady }) {
       const r = await fetch(`https://api.jsonbin.io/v3/b/${bi}/latest`, { headers: { "X-Master-Key": ak } });
       const j = await r.json();
       const data = j.record || { raters: [] };
-      const taken = (data.raters || []).map(r => r.name.toLowerCase());
-      if (taken.includes(trimmed.toLowerCase())) { setError("That name is taken — pick another."); setLoading(false); return; }
+      const raters = data.raters || [];
+      const existing = raters.find(r => r.name.toLowerCase() === trimmedName.toLowerCase());
 
-      const id = `rater-${Date.now()}`;
-      const newData = { ...data, raters: [...(data.raters || []), { id, name: trimmed, ratings: {}, notes: {} }] };
-      await fetch(`https://api.jsonbin.io/v3/b/${bi}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", "X-Master-Key": ak },
-        body: JSON.stringify(newData)
-      });
-      onReady({ id, name: trimmed, apiKey: ak, binId: bi });
+      if (existing) {
+        if (existing.passwordHash) {
+          const hash = await hashPassword(trimmedPass, existing.salt);
+          if (hash !== existing.passwordHash) { setError("Wrong password."); setLoading(false); return; }
+          onReady({ id: existing.id, name: existing.name, apiKey: ak, binId: bi, initialData: data });
+        } else {
+          // Legacy account with no password — first person to claim it sets the password
+          const salt = generateSalt();
+          const hash = await hashPassword(trimmedPass, salt);
+          const newData = { ...data, raters: raters.map(r => r.id === existing.id ? { ...r, passwordHash: hash, salt } : r) };
+          await fetch(`https://api.jsonbin.io/v3/b/${bi}`, { method: "PUT", headers: { "Content-Type": "application/json", "X-Master-Key": ak }, body: JSON.stringify(newData) });
+          onReady({ id: existing.id, name: existing.name, apiKey: ak, binId: bi, initialData: newData });
+        }
+      } else {
+        const salt = generateSalt();
+        const hash = await hashPassword(trimmedPass, salt);
+        const id = `rater-${Date.now()}`;
+        const newData = { ...data, raters: [...raters, { id, name: trimmedName, passwordHash: hash, salt, ratings: {}, notes: {} }] };
+        await fetch(`https://api.jsonbin.io/v3/b/${bi}`, { method: "PUT", headers: { "Content-Type": "application/json", "X-Master-Key": ak }, body: JSON.stringify(newData) });
+        onReady({ id, name: trimmedName, apiKey: ak, binId: bi, initialData: newData });
+      }
     } catch { setError("Could not connect. Check your connection."); }
     setLoading(false);
   };
@@ -268,9 +295,12 @@ function SetupScreen({ onReady }) {
       {step === "name" && (
         <div className="setup-box">
           <div className="setup-label">Your name</div>
-          <input className={`setup-input${error ? " error" : ""}`} value={name} onChange={e=>{setName(e.target.value);setError("");}} onKeyDown={e=>e.key==="Enter"&&handleJoin()} placeholder="e.g. Mike, Niko, Costa…" autoFocus />
+          <input className={`setup-input${error ? " error" : ""}`} value={name} onChange={e=>{setName(e.target.value);setError("");}} onKeyDown={e=>e.key==="Enter"&&passwordRef.current?.focus()} placeholder="e.g. Mike, Niko, Costa…" autoFocus />
+          <div className="setup-label">Password</div>
+          <input ref={passwordRef} type="password" className={`setup-input${error ? " error" : ""}`} value={password} onChange={e=>{setPassword(e.target.value);setError("");}} onKeyDown={e=>e.key==="Enter"&&handleJoin()} placeholder="••••••••" />
+          <div className="info-msg">New? This sets your password. Returning? Enter your existing one.</div>
           {error && <div className="error-msg">{error}</div>}
-          <button className="btn-primary" onClick={handleJoin} disabled={loading || !name.trim()}>
+          <button className="btn-primary" onClick={handleJoin} disabled={loading || !name.trim() || !password.trim()}>
             {loading ? "Joining…" : "Enter the Haven"}
           </button>
         </div>
@@ -349,7 +379,13 @@ function App() {
       try {
         const r = await fetch(`https://api.jsonbin.io/v3/b/${session.binId}/latest`, { headers: { "X-Master-Key": session.apiKey } });
         const j = await r.json();
-        if (j.record) setData(j.record);
+        if (j.record) {
+          setData(prev => {
+            const localMe = prev.raters.find(r => r.id === session.id);
+            if (!localMe) return j.record;
+            return { ...j.record, raters: (j.record.raters || []).map(r => r.id === session.id ? localMe : r) };
+          });
+        }
         setSyncError(false);
       } catch { setSyncError(true); }
     };
@@ -388,7 +424,7 @@ function App() {
     updateRater(r => ({ ...r, notes: { ...r.notes, [sandwichId]: note } }));
   };
 
-  if (!session) return <SetupScreen onReady={s => { setSession(s); }} />;
+  if (!session) return <SetupScreen onReady={s => { const { initialData, ...sess } = s; setSession(sess); if (initialData) setData(initialData); }} />;
 
   const { raters } = data;
   const me = raters.find(r => r.id === session.id) || { ratings: {}, notes: {} };
