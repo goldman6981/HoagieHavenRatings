@@ -235,6 +235,7 @@ function SetupScreen({ onReady }) {
 
     try {
       const r = await fetch(`https://api.jsonbin.io/v3/b/${bi}/latest`, { headers: { "X-Master-Key": ak } });
+      if (!r.ok) { setError(`Could not connect (${r.status}) — check your API key and Bin ID.`); setLoading(false); return; }
       const j = await r.json();
       const data = j.record || { raters: [] };
       const raters = data.raters || [];
@@ -250,7 +251,8 @@ function SetupScreen({ onReady }) {
           const salt = generateSalt();
           const hash = await hashPassword(trimmedPass, salt);
           const newData = { ...data, raters: raters.map(r => r.id === existing.id ? { ...r, passwordHash: hash, salt } : r) };
-          await fetch(`https://api.jsonbin.io/v3/b/${bi}`, { method: "PUT", headers: { "Content-Type": "application/json", "X-Master-Key": ak }, body: JSON.stringify(newData) });
+          const pr = await fetch(`https://api.jsonbin.io/v3/b/${bi}`, { method: "PUT", headers: { "Content-Type": "application/json", "X-Master-Key": ak }, body: JSON.stringify(newData) });
+          if (!pr.ok) { setError(`Save failed (${pr.status}) — check your API key and Bin ID.`); setLoading(false); return; }
           onReady({ id: existing.id, name: existing.name, apiKey: ak, binId: bi, initialData: newData });
         }
       } else {
@@ -258,7 +260,8 @@ function SetupScreen({ onReady }) {
         const hash = await hashPassword(trimmedPass, salt);
         const id = `rater-${Date.now()}`;
         const newData = { ...data, raters: [...raters, { id, name: trimmedName, passwordHash: hash, salt, ratings: {}, notes: {} }] };
-        await fetch(`https://api.jsonbin.io/v3/b/${bi}`, { method: "PUT", headers: { "Content-Type": "application/json", "X-Master-Key": ak }, body: JSON.stringify(newData) });
+        const pr = await fetch(`https://api.jsonbin.io/v3/b/${bi}`, { method: "PUT", headers: { "Content-Type": "application/json", "X-Master-Key": ak }, body: JSON.stringify(newData) });
+        if (!pr.ok) { setError(`Save failed (${pr.status}) — check your API key and Bin ID.`); setLoading(false); return; }
         onReady({ id, name: trimmedName, apiKey: ak, binId: bi, initialData: newData });
       }
     } catch { setError("Could not connect. Check your connection."); }
@@ -379,6 +382,7 @@ function App() {
     const poll = async () => {
       try {
         const r = await fetch(`https://api.jsonbin.io/v3/b/${session.binId}/latest`, { headers: { "X-Master-Key": session.apiKey } });
+        if (!r.ok) { setSyncError(true); return; }
         const j = await r.json();
         if (j.record) {
           setData(prev => {
@@ -399,11 +403,12 @@ function App() {
     if (!session) return;
     setSaving(true);
     try {
-      await fetch(`https://api.jsonbin.io/v3/b/${session.binId}`, {
+      const r = await fetch(`https://api.jsonbin.io/v3/b/${session.binId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "X-Master-Key": session.apiKey },
         body: JSON.stringify(newData)
       });
+      if (!r.ok) { setSyncError(true); setSaving(false); return; }
       setLastSaved(new Date());
       setSyncError(false);
     } catch { setSyncError(true); }
